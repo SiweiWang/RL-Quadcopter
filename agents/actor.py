@@ -8,8 +8,7 @@ class Actor:
     """
     Actor (Policy) Model
     """
-
-    def __int__(self, state_size, action_size, action_low, action_high):
+    def __init__(self, state_size, action_size, action_low, action_high):
         """
         Initialize parameters and build model.
 
@@ -34,7 +33,7 @@ class Actor:
     def build_model(self):
         """ Build an actor (policy) network that maps state -> actions. """
         # Define input layer (states)
-        states = layers.Input(shape=(self.state_size), name='states')
+        states = layers.Input(shape=(self.state_size,), name='states')
 
         net = layers.Dense(units=32, activation='relu')(states)
         net = layers.Dense(units=64, activation='relu')(net)
@@ -49,7 +48,7 @@ class Actor:
         # add a lambda layer to return value in the action range
         actions = layers.Lambda(lambda x: (x * self.action_range) + self.action_low,
             name='actions')(raw_actions)
-        
+
         # Create Keras model
         self.model = models.Model(inputs=states, outputs=actions)
 

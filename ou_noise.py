@@ -1,4 +1,4 @@
-import numpy as numpy
+import numpy as np
 import copy
 
 class OUNoise:
@@ -13,7 +13,7 @@ class OUNoise:
     def reset(self):
         """Reset the internal state (= noise) to mean (mu). """
 
-        slef.state = copy.copy(self.mu)
+        self.state = copy.copy(self.mu)
 
     def sample(self):
         x = self.state

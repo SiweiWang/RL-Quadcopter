@@ -1,7 +1,7 @@
 from ou_noise import OUNoise
 from replay_buffer import ReplayBuffer
-from actor import Actor
-from critic import Critic
+from agents.actor import Actor
+from agents.critic import Critic
 import numpy as np
 
 class DDPG():
@@ -14,8 +14,8 @@ class DDPG():
         self.action_high = task.action_high
 
         # Actor Model
-        self.actor_local = Actor(self.state_size, self.action_size)
-        self.actor_target = Actor(self.state_size, self.action_size)
+        self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
+        self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
 
         # Critic Model
         self.critic_local = Critic(self.state_size, self.action_size)
@@ -51,7 +51,6 @@ class DDPG():
     def step(self, action, reward, next_state, done):
         # Save experience /reward
         self.memory.add(self.last_state, action, reward, next_state, done)
-
         # Learn, if enough samples are available in memory
         if len(self.memory) > self.batch_size:
             experiences = self.memory.sample()
@@ -69,6 +68,7 @@ class DDPG():
     def learn(self, experiences):
         """Update policy and value parameters using give batch experience tuples."""
         # Convert experience tuples to separate arrays for each element (states, actions, rewards, etc.)
+        print ("learning size " +  str(len(experiences)))
         states = np.vstack([e.state for e in experiences if e is not None])
         actions = np.array([e.action for e in experiences if e is not None]).astype(np.float32).reshape(-1, self.action_size)
         rewards  = np.array([e.reward for e in experiences if e is not None]).astype(np.uint8).reshape(-1, 1)
