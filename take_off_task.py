@@ -1,5 +1,6 @@
 import numpy as np
 from physics_sim import PhysicsSim
+import math
 
 class Takeoff_Task():
     """Task (environment) that defines the goal and provides feedback to the agent."""
@@ -29,57 +30,33 @@ class Takeoff_Task():
         # This value should be between 0 and 1, which indicate how much we want to penalize the angle. 0 mean we don't penalize angle
         self.penalty_angle_factor = 0.9
     def get_reward(self):
-        """ Reward function
+        """ Reward function """
 
-        Objective
-        ===============
-            1. Minimize the distance between current pos and target pos to take off as soon as possible
-            2. Reward velocity in z
-            2. Minimize the angles to make sure the take off is stable. take abs value
-        """
-        # item 1 -- distance penalty
-        diff_xy = 0.5 * (abs(self.sim.pose[:2] - self.target_pos[:2]).sum())
-        print ("diff_xy")
-        print (diff_xy)
+        # https:/stackoverflow.com/questions/41723209/distance-between-2-points-in-3d-for-a-big-array?answertab=active#tab-top
+        # http://mathworld.wolfram.com/VectorNorm.html
+        reward = np.linalg.norm(self.sim.pose[:3] - self.target_pos[:3])
 
-        # We care more about diff in z axis
-        diff_z = abs(self.sim.pose[2] - self.target_pos[2])
-        print ("diff_z")
-        print (diff_z)
+        reward = 0.1 - self.sigmoid(reward)
 
-        # item 2 Reward velocity in z
-        velocity_z = 2 * self.sim.v[2]
-        print ("velocity_z")
-        print (velocity_z)
-
-        # item 3 -- angle  penalty
-        angle = 0.5 * (abs(self.sim.pose[3:6]).sum())
-        print ("angle")
-        print (angle)
-
-        # Calculate total reward
-        reward = velocity_z - diff_xy - diff_z - angle
-        print ("reward")
-        print (reward)
-
+        # print ("reward")
+        # print (reward)
         done = False
-        # If we are higher, consider it as finish and give a big reward
-        if (self.sim.pose[2] > self.target_pos[2]):
-            reward += 1.0
-            done = True
-            print ("done reward")
-            print (reward)
-        print(done)
+        # If we are higher, consider it as finish and give a positive finish reward
+        # if (self.sim.pose[2] > self.target_pos[2]):
+        #     reward += 3.00
+        #     done = True
+        # if we hit the ground, give a negative finish reward
+        # if (self.sim.pose[0] < 0.0 or self.sim.pose[1] < 0.0 or self.sim.pose[2] < 0.0 ):
+        #     reward -= 5.00
+        #     done = True
         return reward, done
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
-        reward = 0
         pose_all = []
         for _ in range(self.action_repeat):
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
-            new_reward, taken_off = self.get_reward()
-            reward += new_reward
+            reward, taken_off = self.get_reward()
             if taken_off:
                 done = True
             pose_all.append(self.sim.pose)
@@ -91,3 +68,6 @@ class Takeoff_Task():
         self.sim.reset()
         state = np.concatenate([self.sim.pose] * self.action_repeat) 
         return state
+
+    def sigmoid(self, x):
+        return 1 / (1 + math.exp(-x))

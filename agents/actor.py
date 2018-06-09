@@ -1,4 +1,4 @@
-from keras import layers, models, optimizers
+from keras import layers, models, optimizers, regularizers
 from keras import backend as K
 
 HIDDEN1_UNITS = 32
@@ -35,11 +35,17 @@ class Actor:
         # Define input layer (states)
         states = layers.Input(shape=(self.state_size,), name='states')
 
-        net = layers.Dense(units=32, activation='relu')(states)
-        net = layers.Dense(units=64, activation='relu')(net)
-        net = layers.Dense(units=32, activation='relu')(net)
+        net = layers.Dense(units=32, kernel_regularizer=regularizers.l2(0.01), activation='relu')(states)
+        net = layers.BatchNormalization()(net)
+        net = layers.Dropout(0.2)(net)
 
-        # TODO fine tune the layers
+        net = layers.Dense(units=64, kernel_regularizer=regularizers.l2(0.01), activation='relu')(net)
+        net = layers.BatchNormalization()(net)
+        net = layers.Dropout(0.2)(net)
+
+        net = layers.Dense(units=32, kernel_regularizer=regularizers.l2(0.01), activation='relu')(net)
+        net = layers.BatchNormalization()(net)
+        net = layers.Dropout(0.2)(net)
 
         # Add final output layer with sigmod activation
         raw_actions = layers.Dense(units=self.action_size, activation='sigmoid',
@@ -59,8 +65,6 @@ class Actor:
         action_gradients = layers.Input(shape=(self.action_size,))
 
         loss = K.mean(-action_gradients * actions)
-
-        # TODO add additional losses (e.g. from regularizers)
 
         # Define optimizer and training function
         optimizer = optimizers.Adam()

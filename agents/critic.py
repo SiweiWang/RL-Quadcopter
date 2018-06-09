@@ -29,11 +29,21 @@ class Critic:
         # State and action layers are first be processed via separate "pathways"(mini sub-network), 
         # but eventually need to be combined.
         net_states = layers.Dense(units=HIDDEN1_UNITS, activation='relu')(states)
+        net_states = layers.BatchNormalization()(net_states)
+        net_states = layers.Dropout(0.2)(net_states)
+
         net_states = layers.Dense(units=HIDDEN2_UNITS, activation='relu')(net_states)
+        net_states = layers.BatchNormalization()(net_states)
+        net_states = layers.Dropout(0.2)(net_states)
 
         # Add hidden layers for action pathway
         net_actions = layers.Dense(units=HIDDEN1_UNITS, activation = 'relu')(actions)
+        net_actions = layers.BatchNormalization()(net_actions)
+        net_actions = layers.Dropout(0.2)(net_actions)
+
         net_actions = layers.Dense(units=HIDDEN2_UNITS, activation = 'relu')(net_actions)
+        net_actions = layers.BatchNormalization()(net_actions)
+        net_actions = layers.Dropout(0.2)(net_actions)
 
         # Combine state and action pathways
         net = layers.Add()([net_states, net_actions])

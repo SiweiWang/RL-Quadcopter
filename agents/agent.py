@@ -57,7 +57,7 @@ class DDPG():
         return state
 
     def step(self, action, reward, next_state, done):
-        
+
         self.total_reward += reward
         self.step_count += 1
         # Save experience /reward
@@ -77,16 +77,16 @@ class DDPG():
         return list(action + self.noise.sample()) # add more noise for exploration
 
     def learn(self, experiences):
-        
         self.score = self.total_reward / float(self.step_count) if self.step_count else 0.0
         # Update the noise factor depending on the new score value
-        if self.best_score < self.score:
+        if  self.score > self.best_score:
             self.best_score = self.score
             # find a better score, reduce the search range
-            self.noise_scale = max(0.5 * self.noise_scale, 0.01)
+            self.noise_scale = max(0.2 * self.noise_scale, 0.01)
         else :
             # We are not making progress, are we at the local optima? increase the reach range
-            self.noise_scale = min(2.0 * self.noise_scale, 3.2)
+            self.noise_scale = min(2 * self.noise_scale, 3.2)
+
 
         """Update policy and value parameters using give batch experience tuples."""
         # Convert experience tuples to separate arrays for each element (states, actions, rewards, etc.)
