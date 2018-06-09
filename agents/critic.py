@@ -1,8 +1,8 @@
 from keras import layers, models, optimizers
 from keras import backend as K
 
-HIDDEN1_UNITS = 200
-HIDDEN2_UNITS = 400
+HIDDEN1_UNITS = 32
+HIDDEN2_UNITS = 64
 
 class Critic:
     """Critic model"""
