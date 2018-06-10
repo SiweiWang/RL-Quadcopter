@@ -6,7 +6,7 @@ import numpy as np
 
 class DDPG():
     """Reinforcement learning agent that learns using DDPG."""
-    def __init__(self, task):
+    def __init__(self, task, train=True):
         self.task = task
         self.state_size = task.state_size
         self.action_size = task.action_size
@@ -40,12 +40,15 @@ class DDPG():
 
         self.best_w = None
         self.best_score = -np.inf
-        self.noise_scale = 0.1
+        self.noise_scale = 0.7
         self.score = 0
 
         # Algorithm parameters
         self.gamma = 0.99  # discount factor
         self.tau = 0.01 # for soft update of target parameters
+
+        # Indicate if we want to learn (or use to predict without learn)
+        self.set_train(train)
 
     def reset_episode(self):
         self.total_reward = 0.0
@@ -63,10 +66,10 @@ class DDPG():
         # Save experience /reward
         self.memory.add(self.last_state, action, reward, next_state, done)
         # Learn, if enough samples are available in memory
-        if len(self.memory) > self.batch_size:
+        if self.train and len(self.memory) > self.batch_size:
             experiences = self.memory.sample()
-            self.learn(experiences)
-        
+            self.learn(experiences, done)
+
         # Roll over last state and action
         self.last_state= next_state
 
@@ -76,17 +79,18 @@ class DDPG():
         action = self.actor_local.model.predict(state)[0]
         return list(action + self.noise.sample()) # add more noise for exploration
 
-    def learn(self, experiences):
+    def learn(self, experiences, done):
         self.score = self.total_reward / float(self.step_count) if self.step_count else 0.0
         # Update the noise factor depending on the new score value
-        if  self.score > self.best_score:
+        if  self.score >= self.best_score:
             self.best_score = self.score
-            # find a better score, reduce the search range
-            self.noise_scale = max(0.2 * self.noise_scale, 0.01)
-        else :
-            # We are not making progress, are we at the local optima? increase the reach range
-            self.noise_scale = min(2 * self.noise_scale, 3.2)
-
+            if done:
+                # Save the best_w so far 
+                self.best_w = self.actor_local.model.get_weights()
+        #     else:
+        #         self.noise_scale = max(0.1 * self.noise_scale, 0.01)
+        # else :
+        #     self.noise_scale = min(2 * self.noise_scale, 3.5)
 
         """Update policy and value parameters using give batch experience tuples."""
         # Convert experience tuples to separate arrays for each element (states, actions, rewards, etc.)
@@ -111,7 +115,6 @@ class DDPG():
                             (-1, self.action_size))
         self.actor_local.train_fn([states, action_gradients, 1])
 
-
         # Soft-update target method
 
         self.soft_update(self.critic_local.model, self.critic_target.model)
@@ -127,3 +130,7 @@ class DDPG():
         new_weights = self.tau * local_weights + (1 - self.tau) * target_weights
         target_model.set_weights(new_weights)
 
+    def set_train(self, train):
+        self.train = train
+        if not self.train:
+            self.actor_local.model.set_weights(self.best_w)

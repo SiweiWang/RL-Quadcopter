@@ -1,8 +1,8 @@
 from keras import layers, models, optimizers, regularizers
 from keras import backend as K
 
-HIDDEN1_UNITS = 32
-HIDDEN2_UNITS = 64
+HIDDEN1_UNITS = 200
+HIDDEN2_UNITS = 400
 
 class Actor:
     """
@@ -35,17 +35,13 @@ class Actor:
         # Define input layer (states)
         states = layers.Input(shape=(self.state_size,), name='states')
 
-        net = layers.Dense(units=32, kernel_regularizer=regularizers.l2(0.01), activation='relu')(states)
+        net = layers.Dense(units=HIDDEN1_UNITS, activation='relu')(states)
         net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.2)(net)
 
-        net = layers.Dense(units=64, kernel_regularizer=regularizers.l2(0.01), activation='relu')(net)
+        net = layers.Dense(units=HIDDEN2_UNITS, activation='relu')(net)
         net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.2)(net)
 
-        net = layers.Dense(units=32, kernel_regularizer=regularizers.l2(0.01), activation='relu')(net)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.2)(net)
+        net = layers.Dense(units=HIDDEN1_UNITS, activation='relu')(net)
 
         # Add final output layer with sigmod activation
         raw_actions = layers.Dense(units=self.action_size, activation='sigmoid',

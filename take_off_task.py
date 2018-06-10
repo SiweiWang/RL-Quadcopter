@@ -27,38 +27,49 @@ class Takeoff_Task():
         # Goal
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.]) 
 
-        # This value should be between 0 and 1, which indicate how much we want to penalize the angle. 0 mean we don't penalize angle
-        self.penalty_angle_factor = 0.9
-    def get_reward(self):
+    def get_reward(self, done):
         """ Reward function """
-
         # https:/stackoverflow.com/questions/41723209/distance-between-2-points-in-3d-for-a-big-array?answertab=active#tab-top
         # http://mathworld.wolfram.com/VectorNorm.html
-        reward = np.linalg.norm(self.sim.pose[:3] - self.target_pos[:3])
+        # reward = np.linalg.norm(self.sim.pose[:3] - self.target_pos[:3])
+        # reward_distance = 1.5 - self.sigmoid(reward)
 
-        reward = 0.1 - self.sigmoid(reward)
+        # http://reference.wolfram.com/language/ref/Tanh.html
+        # reward z is positive when above the target above and negative when under
+        # reward_z = 0.0
 
-        # print ("reward")
-        # print (reward)
-        done = False
-        # If we are higher, consider it as finish and give a positive finish reward
-        # if (self.sim.pose[2] > self.target_pos[2]):
-        #     reward += 3.00
-        #     done = True
-        # if we hit the ground, give a negative finish reward
-        # if (self.sim.pose[0] < 0.0 or self.sim.pose[1] < 0.0 or self.sim.pose[2] < 0.0 ):
-        #     reward -= 5.00
-        #     done = True
-        return reward, done
+        # if (self.sim.pose[2] -  self.target_pos[2] > 0.5):
+        #     reward_z = - (self.sigmoid(self.sim.pose[2] + self.sim.v [2]))
+
+        # if (self.target_pos[2] - self.sim.pose[2] > 0.5 ):
+        #     reward_z = self.sigmoid((self.sim.pose[2] + 0.1 * self.sim.v [2]))
+
+        # if ( abs(self.sim.pose[2] -  self.target_pos[2]) < 0.5):
+        #     reward += 1.0
+        reward = 0
+        # Penalize crash
+        if done and self.sim.time < self.sim.runtime:
+            return -1
+
+        # Reward reaching target height
+        if self.sim.pose[2] >= self.target_pos[2] :
+            reward += 1
+
+        # use tanh to scale the reward between -1 and 1
+
+        reward += 0.5 * np.tanh(self.sim.v[2]) 
+        reward -= 0.5 * np.tanh(np.linalg.norm(self.sim.pose[:3] - self.target_pos[:3])) 
+
+        # reward = np.tanh(1 - 0.0005*(abs(self.sim.pose[:3] - self.target_pos)).sum())
+
+        return reward
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
         pose_all = []
         for _ in range(self.action_repeat):
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
-            reward, taken_off = self.get_reward()
-            if taken_off:
-                done = True
+            reward = self.get_reward(done)
             pose_all.append(self.sim.pose)
         next_state = np.concatenate(pose_all)
         return next_state, reward, done
