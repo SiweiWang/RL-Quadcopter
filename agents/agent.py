@@ -36,11 +36,12 @@ class DDPG():
         # Replay memory
         self.buffer_size = 100000
         self.batch_size = 64
+
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size)
 
         self.best_w = None
         self.best_score = -np.inf
-        self.noise_scale = 0.7
+        # self.noise_scale = 0.7
         self.score = 0
 
         # Algorithm parameters
@@ -65,6 +66,21 @@ class DDPG():
         self.step_count += 1
         # Save experience /reward
         self.memory.add(self.last_state, action, reward, next_state, done)
+
+        self.score = self.total_reward / float(self.step_count) if self.step_count else 0.0
+        # Update the noise factor depending on the new score value
+        if  self.score >= self.best_score:
+            self.best_score = self.score
+            # Add mixin positive example for the agent to learn
+            # self.memory.add(self.last_state, action, reward, next_state, done, positive=True)
+            # if done:
+                # Save the best_w so learned
+                # self.best_w = self.actor_local.model.get_weights()
+            # else:
+        #     self.noise_scale = max(0.1 * self.noise_scale, 0.01)
+        # else :
+        #     self.noise_scale = min(2 * self.noise_scale, 3.5)
+
         # Learn, if enough samples are available in memory
         if self.train and len(self.memory) > self.batch_size:
             experiences = self.memory.sample()
@@ -80,18 +96,6 @@ class DDPG():
         return list(action + self.noise.sample()) # add more noise for exploration
 
     def learn(self, experiences, done):
-        self.score = self.total_reward / float(self.step_count) if self.step_count else 0.0
-        # Update the noise factor depending on the new score value
-        if  self.score >= self.best_score:
-            self.best_score = self.score
-            if done:
-                # Save the best_w so far 
-                self.best_w = self.actor_local.model.get_weights()
-        #     else:
-        #         self.noise_scale = max(0.1 * self.noise_scale, 0.01)
-        # else :
-        #     self.noise_scale = min(2 * self.noise_scale, 3.5)
-
         """Update policy and value parameters using give batch experience tuples."""
         # Convert experience tuples to separate arrays for each element (states, actions, rewards, etc.)
         states = np.vstack([e.state for e in experiences if e is not None])
@@ -132,5 +136,5 @@ class DDPG():
 
     def set_train(self, train):
         self.train = train
-        if not self.train:
-            self.actor_local.model.set_weights(self.best_w)
+        # if not self.train:
+        #     self.actor_local.model.set_weights(self.best_w)

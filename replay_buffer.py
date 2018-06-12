@@ -22,7 +22,8 @@ class ReplayBuffer:
 
     def sample(self, batch_size=64):
         """Randomly sample a batch of experiences from memory."""
-        return random.sample(self.memory, k=self.batch_size)
+        result = random.sample(self.memory, k=self.batch_size)
+        return result
 
     def __len__(self):
         """Return the current size of internal memory."""

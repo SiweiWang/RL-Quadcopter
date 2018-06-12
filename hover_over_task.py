@@ -32,7 +32,7 @@ class Takeoff_Task():
         # https:/stackoverflow.com/questions/41723209/distance-between-2-points-in-3d-for-a-big-array?answertab=active#tab-top
         # http://mathworld.wolfram.com/VectorNorm.html
         reward = np.linalg.norm(self.sim.pose[:3] - self.target_pos[:3])
-        reward_distance = 1.5 - self.sigmoid(reward)
+        reward_distance = 0.5 - self.sigmoid(reward)
 
         return reward_distance
 
