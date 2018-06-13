@@ -1,6 +1,7 @@
 from keras import layers, models, optimizers, regularizers
 from keras import backend as K
 
+# Set the layer number suggested by paper:  https://pdfs.semanticscholar.org/71f2/03de1a53deae81a7707143f0ed564661e279.pdf
 HIDDEN1_UNITS = 400
 HIDDEN2_UNITS = 300
 

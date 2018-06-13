@@ -13,9 +13,11 @@ class DDPG():
         self.action_low = task.action_low
         self.action_high = task.action_high
 
-        self.actor_learning_rate = 0.005
+
+        # Set the learning rate suggested by paper:  https://pdfs.semanticscholar.org/71f2/03de1a53deae81a7707143f0ed564661e279.pdf
+        self.actor_learning_rate = 0.001
         self.actor_decay = 0.0
-        self.critic_learning_rate = 0.01
+        self.critic_learning_rate = 0.001
         self.critic_decay = 0.0
 
         # Actor Model
@@ -40,7 +42,8 @@ class DDPG():
 
         # Replay memory
         self.buffer_size = 100000
-        self.batch_size = 128 # Changed from default value 64
+
+        self.batch_size = 64
 
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size)
 
