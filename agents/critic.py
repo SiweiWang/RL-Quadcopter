@@ -1,12 +1,12 @@
 from keras import layers, models, optimizers
 from keras import backend as K
 
-HIDDEN1_UNITS = 32
-HIDDEN2_UNITS = 64
+HIDDEN1_UNITS = 400
+HIDDEN2_UNITS = 300
 
 class Critic:
     """Critic model"""
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size, learning_rate, decay):
         """Initialize parameters and build model.
         Params
         ===
@@ -15,6 +15,10 @@ class Critic:
         """
         self.state_size = state_size
         self.action_size = action_size
+
+        self.learning_rate = learning_rate
+        self.decay = decay
+
         self.build_model()
 
     def build_model(self):

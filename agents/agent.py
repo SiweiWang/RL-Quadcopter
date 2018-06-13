@@ -13,13 +13,18 @@ class DDPG():
         self.action_low = task.action_low
         self.action_high = task.action_high
 
+        self.actor_learning_rate = 0.005
+        self.actor_decay = 0.0
+        self.critic_learning_rate = 0.01
+        self.critic_decay = 0.0
+
         # Actor Model
-        self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
-        self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
+        self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high, self.actor_learning_rate, self.actor_decay)
+        self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high, self.actor_learning_rate, self.actor_decay)
 
         # Critic Model
-        self.critic_local = Critic(self.state_size, self.action_size)
-        self.critic_target = Critic(self.state_size, self.action_size)
+        self.critic_local = Critic(self.state_size, self.action_size, self.critic_learning_rate, self.critic_decay)
+        self.critic_target = Critic(self.state_size, self.action_size, self.critic_learning_rate, self.critic_decay)
 
         # initialize targets model parameters with local model parameters
         self.critic_target.model.set_weights(self.critic_local.model.get_weights())
@@ -35,7 +40,7 @@ class DDPG():
 
         # Replay memory
         self.buffer_size = 100000
-        self.batch_size = 64
+        self.batch_size = 128 # Changed from default value 64
 
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size)
 
@@ -47,6 +52,7 @@ class DDPG():
         # Algorithm parameters
         self.gamma = 0.99  # discount factor
         self.tau = 0.01 # for soft update of target parameters
+
 
         # Indicate if we want to learn (or use to predict without learn)
         self.set_train(train)

@@ -1,14 +1,14 @@
 from keras import layers, models, optimizers, regularizers
 from keras import backend as K
 
-HIDDEN1_UNITS = 64
-HIDDEN2_UNITS = 64
+HIDDEN1_UNITS = 400
+HIDDEN2_UNITS = 300
 
 class Actor:
     """
     Actor (Policy) Model
     """
-    def __init__(self, state_size, action_size, action_low, action_high):
+    def __init__(self, state_size, action_size, action_low, action_high, learning_rate, decay):
         """
         Initialize parameters and build model.
 
@@ -25,6 +25,8 @@ class Actor:
         self.action_low = action_low
         self.action_high = action_high
         self.action_range = self.action_high - self.action_low
+        self.learning_rate = learning_rate
+        self.decay = decay
 
         # Initialize any other variables here
 
@@ -44,6 +46,8 @@ class Actor:
         net = layers.Dropout(0.5)(net)
     
         net = layers.Dense(units=HIDDEN1_UNITS, activation='tanh')(net)
+        net = layers.BatchNormalization()(net)
+        net = layers.Dropout(0.5)(net)
 
         # Add final output layer with sigmod activation
         raw_actions = layers.Dense(units=self.action_size, activation='sigmoid',
@@ -65,7 +69,7 @@ class Actor:
         loss = K.mean(-action_gradients * actions)
 
         # Define optimizer and training function
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(lr=self.learning_rate, decay=self.decay)
         updates_op = optimizer.get_updates(params=self.model.trainable_weights, loss=loss)
         
         self.train_fn = K.function(

@@ -92,7 +92,7 @@ class Takeoff_Task():
             reward, height_done = self.get_reward()
             pose_all.append(self.sim.pose)
 
-            # terminate if done
+            # terminate if reach the target height
             if height_done:
                 done = True
 
