@@ -18,8 +18,9 @@ class Critic:
         self.action_size = action_size
 
         self.learning_rate = learning_rate
+        # self.activation='tanh'
+        self.activation='relu'
         self.decay = decay
-
         self.build_model()
 
     def build_model(self):
@@ -33,28 +34,28 @@ class Critic:
 
         # State and action layers are first be processed via separate "pathways"(mini sub-network), 
         # but eventually need to be combined.
-        net_states = layers.Dense(units=HIDDEN1_UNITS, activation='tanh')(states)
+        net_states = layers.Dense(units=HIDDEN1_UNITS, activation = self.activation)(states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Dropout(0.5)(net_states)
 
-        net_states = layers.Dense(units=HIDDEN2_UNITS, activation='tanh')(net_states)
+        net_states = layers.Dense(units=HIDDEN2_UNITS, activation = self.activation)(net_states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Dropout(0.5)(net_states)
 
-        net_states = layers.Dense(units=HIDDEN1_UNITS, activation='tanh')(net_states)
+        net_states = layers.Dense(units=HIDDEN1_UNITS, activation = self.activation)(net_states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Dropout(0.5)(net_states)
     
         # Add hidden layers for action pathway
-        net_actions = layers.Dense(units=HIDDEN1_UNITS, activation = 'tanh')(actions)
+        net_actions = layers.Dense(units=HIDDEN1_UNITS, activation = self.activation)(actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Dropout(0.5)(net_actions)
 
-        net_actions = layers.Dense(units=HIDDEN2_UNITS, activation = 'tanh')(net_actions)
+        net_actions = layers.Dense(units=HIDDEN2_UNITS, activation = self.activation)(net_actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Dropout(0.5)(net_actions)
 
-        net_actions = layers.Dense(units=HIDDEN1_UNITS, activation = 'tanh')(net_actions)
+        net_actions = layers.Dense(units=HIDDEN1_UNITS, activation = self.activation)(net_actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Dropout(0.5)(net_actions)
     

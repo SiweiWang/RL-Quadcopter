@@ -25,39 +25,41 @@ class Takeoff_Task():
         self.action_size = 4
 
         # distance factor
-        self.xy_distance_factor= 0.7
-        self.z_distance_factor=2.0
-        self.z_distance_max=15.0
+        self.xy_distance_factor = 0.5
+        self.z_distance_factor = 2.0
+        self.z_distance_max = 15.0
 
-        self.z_velocity_factor=4.0
+        self.z_velocity_factor = 4.0
 
         # angle factor
-        self.angle_pentalty=3.0
-        self.angle_velocity=3.0
+        self.angle_pentalty = 3.0
+        self.angle_velocity_pentalty = 3.0
 
         # Reward when reach the target hight
-        self.finish_reward = 50.0
+        self.finish_reward = 100.0
 
-        # Goal
+        # Reward scale factor -- the total reward factor that scales the final reward. 
+        # This does not change the propertion of each part of rewards
+        self.reward_scale = 1
+
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.]) 
 
     def get_reward(self):
         """ Reward function """
         reward = - self.xy_distance_factor * (abs(self.sim.pose[:2] - self.target_pos[:2])).sum()
         reward += - self.z_distance_factor * min(abs(self.sim.pose[2] - self.target_pos[2]), self.z_distance_max)
-
-        # Reward 
         reward +=  self.z_velocity_factor * self.sim.v[2]
 
-        reward += - self.angle_pentalty * (abs(self.sim.pose[3:6])).sum() - self.angle_velocity * (abs(self.sim.angular_v[:3])).sum()
+        reward += - self.angle_pentalty * (abs(self.sim.pose[3:6])).sum() - self.angle_velocity_pentalty * (abs(self.sim.angular_v[:3])).sum()
 
+        # Terminate if reach the height
         if(self.sim.pose[2] >= self.target_pos[2]):
             reward += self.finish_reward 
             done = True
         else:
             done = False
 
-        return reward, done
+        return self.reward_scale*reward, done
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""

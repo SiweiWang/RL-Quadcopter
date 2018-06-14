@@ -26,8 +26,11 @@ class Actor:
         self.action_low = action_low
         self.action_high = action_high
         self.action_range = self.action_high - self.action_low
+
         self.learning_rate = learning_rate
         self.decay = decay
+        #self.activation='tanh'
+        self.activation='relu'
 
         # Initialize any other variables here
 
@@ -38,15 +41,15 @@ class Actor:
         # Define input layer (states)
         states = layers.Input(shape=(self.state_size,), name='states')
 
-        net = layers.Dense(units=HIDDEN1_UNITS, activation='tanh')(states)
+        net = layers.Dense(units=HIDDEN1_UNITS, activation=self.activation)(states)
         net = layers.BatchNormalization()(net)
         net = layers.Dropout(0.5)(net)
 
-        net = layers.Dense(units=HIDDEN2_UNITS, activation='tanh')(net)
+        net = layers.Dense(units=HIDDEN2_UNITS, activation=self.activation)(net)
         net = layers.BatchNormalization()(net)
         net = layers.Dropout(0.5)(net)
     
-        net = layers.Dense(units=HIDDEN1_UNITS, activation='tanh')(net)
+        net = layers.Dense(units=HIDDEN1_UNITS, activation=self.activation)(net)
         net = layers.BatchNormalization()(net)
         net = layers.Dropout(0.5)(net)
 
